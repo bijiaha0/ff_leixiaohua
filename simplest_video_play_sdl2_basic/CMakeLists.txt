@@ -1,0 +1,2 @@
+add_executable(simplest_video_play_sdl2_basic simplest_video_play_sdl2_basic.cpp)
+target_link_libraries(simplest_video_play_sdl2_basic -lSDL2 -lSDL2main)
