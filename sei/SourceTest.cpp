@@ -5,8 +5,6 @@ int testDecodeSEI(const char * file);
 int testEncode(const char * infile, const char * outfile);
 int testEncode2(const char * infile, const char * outfile);
 int testEncode3(const char * infile, const char * outfile);
-//aac测试
-int simplest_aac_parser(char *url);
 
 #include <strings.h>
 
