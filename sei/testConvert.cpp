@@ -1,6 +1,6 @@
 #pragma once
 
-#include "EvoInterface/EvoVideoConvert.h"
+#include "EvoVideoConvert.h"
 
 inline uint64_t GetFileSize(FILE * fp)
 {
