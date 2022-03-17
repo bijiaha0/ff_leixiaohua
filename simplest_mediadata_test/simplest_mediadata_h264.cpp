@@ -37,9 +37,13 @@ typedef enum {
     NALU_TYPE_DPA = 2,
     NALU_TYPE_DPB = 3,
     NALU_TYPE_DPC = 4,
+    //IDR(Instantaneous Decoding Refresh)：即时解码刷新。
     NALU_TYPE_IDR = 5,
+    //SEI(Supplemental enhancement information)：附加增强信息，包含了视频画面定时等信息，一般放在主编码图像数据之前，在某些应用中，它可以被省略掉。
     NALU_TYPE_SEI = 6,
+    //SPS(Sequence Parameter Sets)：序列参数集，作用于一系列连续的编码图像。
     NALU_TYPE_SPS = 7,
+    //PPS(Picture Parameter Set)：图像参数集，作用于编码视频序列中一个或多个独立的图像。
     NALU_TYPE_PPS = 8,
     NALU_TYPE_AUD = 9,
     NALU_TYPE_EOSEQ = 10,
@@ -54,7 +58,12 @@ typedef enum {
     NALU_PRIORITY_HIGHEST = 3
 } NaluPriority;
 
-
+/*
+NAL Header由三部分组成：
+forbidden_bit(1bit)
+nal_reference_bit(2bits)（优先级）
+nal_unit_type(5bits)（类型）
+*/
 typedef struct {
     int startcodeprefix_len;      //! 4 for parameter sets and first slice in picture, 3 for everything else (suggested)
     unsigned len;                 //! Length of the NAL unit (Excluding the start code, which does not belong to the NALU)
@@ -69,16 +78,17 @@ FILE *h264bitstream = NULL;                //!< the bit stream file
 
 int info2 = 0, info3 = 0;
 
+//起始码为三个字节
 static int FindStartCode2(unsigned char *Buf) {
     if (Buf[0] != 0 || Buf[1] != 0 || Buf[2] != 1) return 0; //0x000001
     else return 1;
 }
 
+//起始码为四个字节
 static int FindStartCode3(unsigned char *Buf) {
     if (Buf[0] != 0 || Buf[1] != 0 || Buf[2] != 0 || Buf[3] != 1) return 0;//0x00000001
     else return 1;
 }
-
 
 int GetAnnexbNALU(NALU_t *nalu) {
     int pos = 0;
@@ -121,10 +131,10 @@ int GetAnnexbNALU(NALU_t *nalu) {
     info2 = 0;
     info3 = 0;
 
-    //寻找下一个开始码
+    //寻找下一个开始码 mark
     while (!StartCodeFound) {
         //feof函数，检测流上的文件结束符，如果文件结束，则返回非0值，否则返回0
-        //木有找到下一个开始码
+        //文件结束
         if (feof(h264bitstream)) {
             nalu->len = (pos - 1) - nalu->startcodeprefix_len;
             memcpy(nalu->buf, &Buf[nalu->startcodeprefix_len], nalu->len);
@@ -137,13 +147,14 @@ int GetAnnexbNALU(NALU_t *nalu) {
 
         Buf[pos++] = fgetc(h264bitstream);
         info3 = FindStartCode3(&Buf[pos - 4]);
+
         if (info3 != 1)
             info2 = FindStartCode2(&Buf[pos - 3]);
+
         StartCodeFound = (info2 == 1 || info3 == 1);
     }
 
-    // Here, we have found another start code (and read length of startcode bytes more than we should
-    // have.  Hence, go back in the file
+    // Here, we have found another start code (and read length of startcode bytes more than we should have.  Hence, go back in the file
     rewind = (info3 == 1) ? -4 : -3;
 
     //fseek函数可以移动文件的读写指针到指定的位置
@@ -156,8 +167,7 @@ int GetAnnexbNALU(NALU_t *nalu) {
     }
 
     // Here the Start code, the complete NALU, and the next start code is in the Buf.
-    // The size of Buf is pos, pos+rewind are the number of bytes excluding the next
-    // start code, and (pos+rewind)-startcodeprefix_len is the size of the NALU excluding the start code
+    // The size of Buf is pos, pos+rewind are the number of bytes excluding the next start code, and (pos+rewind)-startcodeprefix_len is the size of the NALU excluding the start code
 
     // Network Abstraction Layer Units NALU
     // 每个NALU包的第一个字节包含了NALU类型，
