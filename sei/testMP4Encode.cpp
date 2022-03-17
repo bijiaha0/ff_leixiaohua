@@ -1,7 +1,5 @@
 #include "EvHeade.h"
 #include "Encode.h"
-#include "SEIEncode.h"
-#include "exterlFunction.h"
 
 //"../Vid0616000023.mp4"
 //"../1.mp4"

@@ -1,9 +1,6 @@
 #include <sys/time.h>
 #include "EvHeade.h"
 #include "Encode.h"
-#include "SEIEncode.h"
-#include "exterlFunction.h"
-#include "ImageFile.h"
 
 unsigned long GetTickCount()
 {

@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 11)
 include_directories(/usr/local/Cellar/sdl2/2.0.18/include/)
 link_directories(/usr/local/Cellar/sdl2/2.0.18/lib)
 
-include_directories(/usr/local/Cellar/ffmpeg/4.4.1_3/include)
-link_directories(/usr/local/Cellar/ffmpeg/4.4.1_3/lib)
+include_directories(/usr/local/Cellar/ffmpeg/4.4.1_3/include/)
+link_directories(/usr/local/Cellar/ffmpeg/4.4.1_3/lib/)
 
 add_subdirectory(simplest_ffmpeg_player)
 add_subdirectory(simplest_ffmpeg_player_su)

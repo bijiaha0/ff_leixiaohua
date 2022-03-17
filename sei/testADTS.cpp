@@ -3,7 +3,7 @@
 #include "SEIEncode.h"
 #include "exterlFunction.h"
 #include "TransformADTS.h"
-#include "../EvoInterface/AudioDecoder.h"
+#include "AudioDecoder.h"
 #include "AACEncoder.h"
 #include "AEncode.h"
 

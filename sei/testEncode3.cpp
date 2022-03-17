@@ -2,7 +2,6 @@
 
 #include "EvHeade.h"
 #include "Encode.h"
-#include "SEIEncode.h"
 #include "exterlFunction.h"
 #include "sei_packet.h"
 

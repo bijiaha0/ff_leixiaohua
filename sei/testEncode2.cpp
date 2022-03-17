@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EvHeade.h"
-#include "Encode.h"
 #include "SEIEncode.h"
 #include "exterlFunction.h"
 
