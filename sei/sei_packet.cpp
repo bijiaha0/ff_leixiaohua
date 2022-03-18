@@ -5,6 +5,16 @@
 
 #define min(X,Y) ((X) < (Y) ? (X) : (Y))
 
+//https://blog.csdn.net/stpeace/article/details/8221945
+//NALU: Coded H.264 data is stored or transmitted as a series of packets known as Network Abstraction Layer Units.(NALU单元)
+//RBSP: A NALU contains a Raw Byte Sequence Payload, a sequence of bytes containing syntax elements.(原始数据字节流)
+//SODB: String Of Data Bits （原始数据比特流, 长度不一定是8的倍数，故需要补齐）
+//SODB + RBSP trailing bits = RBSP
+//NAL header(1 byte) + RBSP = NALU
+//Start Code Prefix(3 bytes) + NALU + Start Code Prefix(3 bytes) + NALU + ...+ = H.264BitsStream
+
+//字节流主要是操作byte类型数据，以byte数组为准
+//https://mp.weixin.qq.com/s/TePsSvMgGDlZ9RgUkqFJ3A
 //开始码
 static unsigned char START_CODE[] = { 0x00,0x00,0x00,0x01 };
 static unsigned char START_CODE_LOW[] = { 0x00,0x00,0x01 };
@@ -41,6 +51,7 @@ uint32_t get_annexb_size(uint8_t * packet, uint32_t size)
 
     unsigned char *data = packet;
     if (data == NULL) return 0;
+
     if (size > 3 && memcmp(data, ANNEXB_CODE_LOW, 3) == 0)
     {
         return 3;
@@ -49,6 +60,7 @@ uint32_t get_annexb_size(uint8_t * packet, uint32_t size)
     {
         return 4;
     }
+
     return 0;
 }
 
@@ -153,16 +165,18 @@ static uint32_t get_content_uncompete_size(const uint8_t *data, uint32_t size)
 }
 
 //获取SEI长度
+//参考博客地址 https://blog.csdn.net/imliutao2/article/details/84532614
 uint32_t get_sei_nalu_size(const uint8_t *data, uint32_t size)
 {
+    //加竞争字段后，内容的大小
     uint32_t content_size = get_content_compete_size(data, size);
-    //计算空间的
+    //SEI payload size(真实的)
     uint32_t payload_size = size + UUID_SIZE;
-    //SEI payload size
+    //SEI payload size(加上竞争字段的)
     uint32_t sei_payload_size = content_size + UUID_SIZE;
-    //NALU + payload类型 + 数据长度 + 数据
+    //NAL header + SEI payload type + SEI payload uuid + SEI payload content + rbsp trailing bits
     uint32_t sei_size = 1 + 1 + (payload_size / 0xFF + (payload_size % 0xFF != 0 ? 1 : 0)) + sei_payload_size;
-    //截止码
+    //截止码(保证为偶数)
     uint32_t tail_size = 2;
     if (sei_size % 2 == 1)
     {
@@ -190,6 +204,7 @@ int32_t fill_sei_packet(uint8_t * packet, uint32_t annexbType, const uint8_t *uu
     {
         return -1;
     }
+
     if (uuid == NULL)
     {
         return -1;
@@ -220,13 +235,17 @@ int32_t fill_sei_packet(uint8_t * packet, uint32_t annexbType, const uint8_t *uu
     }
 
     uint8_t * sei_nalu = nalu_data;
-    //NAL
+
+    //NAL header
     *nalu_data++ = 6; //SEI
-    //sei payload
+
+    //SEI payload type
     *nalu_data++ = 5; //unregister
 
-    uint32_t sei_payload_size = size + UUID_SIZE;
+    //SEI payload size
     //数据长度
+    uint32_t sei_payload_size = size + UUID_SIZE;
+
     while (1)
     {
         *nalu_data++ = (sei_payload_size >= 0xFF ? 0xFF : (char)sei_payload_size);
@@ -234,10 +253,12 @@ int32_t fill_sei_packet(uint8_t * packet, uint32_t annexbType, const uint8_t *uu
         sei_payload_size -= 0xFF;
     }
 
-    //UUID
+    //SEI payload uuid(16字节)
     memcpy(nalu_data, uuid, UUID_SIZE);
     nalu_data += UUID_SIZE;
     uint32_t content_size = get_content_compete_size(data, size);
+
+    //SEI payload content
     //数据
     if (data != NULL)
     {
@@ -253,6 +274,7 @@ int32_t fill_sei_packet(uint8_t * packet, uint32_t annexbType, const uint8_t *uu
             {
                 if (zero_count >= 2)
                 {
+                    //防竞争字段
                     *nalu_data++ = 0x03;
                     *nalu_data++ = data[i];
                     zero_count = 0;
@@ -273,6 +295,7 @@ int32_t fill_sei_packet(uint8_t * packet, uint32_t annexbType, const uint8_t *uu
         }
     }
 
+    //rbsp trailing bits
     //tail 截止对齐码
     if (sei_nalu + sei_size - nalu_data == 1)
     {
@@ -297,24 +320,26 @@ typedef struct sei_content {
 //获取SEI内容
 static int32_t get_sei_buffer(uint8_t * packet, uint32_t size, sei_content *content)
 {
+
     if (size <= 0) return -1;
     if (packet == NULL) return -1;
 
     uint8_t * sei = packet;
     uint32_t sei_type = 0;
     uint32_t sei_size = 0;
+
     //payload type
     do {
         sei_type += *sei;
     } while (*sei++ == 255);
+
     //数据长度
     do {
         sei_size += *sei;
     } while (*sei++ == 255);
 
     //检查UUID
-    if (sei_size >= UUID_SIZE && sei_size <= (packet + size - sei) &&
-        sei_type == 5)
+    if (sei_size >= UUID_SIZE && sei_size <= (packet + size - sei) && sei_type == 5)
     {
         content->uuid = sei;
 
@@ -327,6 +352,7 @@ static int32_t get_sei_buffer(uint8_t * packet, uint32_t size, sei_content *cont
 
         return sei_size;
     }
+
     return -1;
 }
 
@@ -381,6 +407,7 @@ int32_t get_annexb_sei_content(uint8_t * packet, uint32_t size, const uint8_t *u
     while (data < packet + size) {
         int32_t index = find_annexb(data, data_size);
         int32_t second_index = 0;
+
         if (index != -1)
         {
             uint32_t startCodeSize = get_annexb_size(data + index, data_size - index);
@@ -406,15 +433,19 @@ int32_t get_annexb_sei_content(uint8_t * packet, uint32_t size, const uint8_t *u
         {
             return -1;
         }
+
         if (nalu_element != NULL && nalu_element_size != 0)
         {
+            //到了末尾
             if ((int32_t)(packet + size - nalu_element)  < nalu_element_size)
             {
                 nalu_element_size = (int32_t)(packet + size - nalu_element);
             }
 
+            //获取startCodeSize
             uint32_t startCodeSize = get_annexb_size(nalu_element, nalu_element_size);
             if (startCodeSize == 0) continue;
+
             //SEI
             if ((nalu_element[startCodeSize] & 0x1F) == 6)
             {
@@ -426,7 +457,9 @@ int32_t get_annexb_sei_content(uint8_t * packet, uint32_t size, const uint8_t *u
                 {
                     if (memcmp(uuid, content.uuid, UUID_SIZE) == 0)
                     {
+                        //去掉防竞争
                         int32_t uncompete_size = get_content_uncompete_size(content.data, content.size);
+
                         if (uncompete_size > 0 && pdata != NULL)
                         {
                             uncompete_size = min((int32_t)content.payload_size, uncompete_size);
@@ -442,7 +475,9 @@ int32_t get_annexb_sei_content(uint8_t * packet, uint32_t size, const uint8_t *u
                                 free(outData);
                             }
                         }
+
                         if (psize != NULL) *psize = uncompete_size;
+
                         return uncompete_size;
                     }
                 }
@@ -507,7 +542,7 @@ int get_sei_content(uint8_t * packet, uint32_t size, const uint8_t *uuid, uint8_
     //暂时只处理MP4封装,annexb暂为处理
     if (isAnnexb)
     {
-        return get_annexb_sei_content(packet,size,uuid,pdata,psize);
+        return get_annexb_sei_content(packet, size, uuid, pdata, psize);
     }
     else
     {

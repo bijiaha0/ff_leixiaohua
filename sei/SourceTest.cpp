@@ -63,7 +63,6 @@ int testSEI() {
     if (data != NULL)
     {
         printf("%d",memcmp(data, source, source_len));
-
         free_sei_content(&data);
     }
     free(buffer);
@@ -107,8 +106,8 @@ int main(int argv ,char* argc[])
     }
     else if (strcasecmp(type, "sei_test") == 0)
     {
-        testSEI();
-        //testIMU();
+        //testSEI();
+        testIMU();
     }
     else
     {
