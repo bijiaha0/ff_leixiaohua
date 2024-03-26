@@ -115,8 +115,6 @@ char *avcodecinfo() {
     char *info = (char *) malloc(40000);
     memset(info, 0, 40000);
 
-    av_register_all();
-
     AVCodec *c_temp = av_codec_next(NULL);
 
     while (c_temp != NULL) {

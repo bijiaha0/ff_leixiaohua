@@ -11,7 +11,7 @@ inline long fileSize(FILE * in)
     return size;
 }
 
-//char * path = "D:/Users/ee/Desktop/temp_frame_0724_1549/temp_frame_0724_1549";
+//char * path = "/temp_frame_0724_1549";
 int testFLV(const char * path)
 {
     char strBuffer[256];
@@ -39,6 +39,7 @@ int testFLV(const char * path)
             fclose(in);
             continue;
         }
+
         timeStamp += 33;
         FLVTagHeader(fp, 9, size, timeStamp);
         fwrite(mem, size, 1, fp);
@@ -46,6 +47,7 @@ int testFLV(const char * path)
 
         fclose(in);
     }
+
     fclose(fp);
     return ret;
 }

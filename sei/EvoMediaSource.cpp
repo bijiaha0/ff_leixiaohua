@@ -10,8 +10,7 @@ inline bool IsAnnexb(uint8_t * packet,int size)
     bool isAnnexb = false;
     if (packet == NULL) return isAnnexb;
     if ((size > 3 && memcmp(data, ANNEXB_CODE_LOW, 3) == 0) ||
-        (size > 4 && memcmp(data, ANNEXB_CODE, 4) == 0)
-            )
+        (size > 4 && memcmp(data, ANNEXB_CODE, 4) == 0))
     {
         isAnnexb = true;
     }
@@ -59,14 +58,12 @@ EvoMediaSource::~EvoMediaSource()
 
 int EvoMediaSource::Open(const char * file, EvoMediaSourceConfig *config, enum AVMediaType codecType)
 {
-    av_register_all();
-
     context_ = avformat_alloc_context();
 
     AVDictionary* options = NULL;
-    //����̽��ͷ��������ĵȴ�
     //av_dict_set(&options, "max_analyze_duration", "100", 0);
     //av_dict_set(&options, "probesize", "1024", 0);
+
     int ret = avformat_open_input(&context_,file,NULL, NULL);
     if (ret != 0)
     {
@@ -148,8 +145,7 @@ int EvoMediaSource::Open(const char * file, EvoMediaSourceConfig *config, enum A
 #endif
     }
 
-    if (videoIndex_ == -1 ||
-        (codecType == AVMEDIA_TYPE_VIDEO && AV_CODEC_ID_H264 != codecContext_->codec_id))
+    if (videoIndex_ == -1 || (codecType == AVMEDIA_TYPE_VIDEO && AV_CODEC_ID_H264 != codecContext_->codec_id))
     {
         if (context_ != NULL)
         {
@@ -166,6 +162,7 @@ int EvoMediaSource::Open(const char * file, EvoMediaSourceConfig *config, enum A
 
     if (codecContext_ != NULL && AV_CODEC_ID_H264 == codecContext_->codec_id && codecType == AVMEDIA_TYPE_VIDEO)
     {
+        //解析pps sps
         AnalysisVideoPPSSPS();
     }
 
@@ -379,6 +376,7 @@ int EvoMediaSource::GetPPS(uint8_t * data, int size)
 int EvoMediaSource::GetSPS(uint8_t * data, int size)
 {
     if (videoStream_ == NULL) return 0;
+
     if (sps_size_ <= size && sps_data_ != NULL && data != NULL)
     {
         memcpy(data, sps_data_, sps_size_);
@@ -404,7 +402,6 @@ int EvoMediaSource::GetFrameCount()
     return (int)videoStream_->nb_frames;
 }
 
-//��
 int EvoMediaSource::GetWidth()
 {
     if (codecContext_ == NULL) return 0;
@@ -412,7 +409,6 @@ int EvoMediaSource::GetWidth()
            codecContext_->width : codecContext_->coded_width;
 }
 
-//��
 int EvoMediaSource::GetHeight()
 {
     if (codecContext_ == NULL) return 0;
@@ -540,10 +536,10 @@ int EvoMediaSource::AnalysisVideoPPSSPS()
         uint64_t total_size = 0;
         uint8_t unit_nb, sps_done = 0, sps_seen = 0, pps_seen = 0;
         int unit_type = 0;
-        extradata = extradata + 4;  //����ǰ4���ֽ�
+        extradata = extradata + 4;  //
 
         /* retrieve length coded size */
-        int length_size = (*extradata++ & 0x3) + 1;    //����ָʾ��ʾ�������ݳ��������ֽ���
+        int length_size = (*extradata++ & 0x3) + 1;    //
         if (length_size == 3)
             return AVERROR(EINVAL);
 

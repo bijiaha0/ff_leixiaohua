@@ -207,11 +207,8 @@ int EvoVideoConvert::CheckForInitialize(const AVFrame* srcFrame)
 {
     if (srcFrame->width == 0 || srcFrame->height == 0) return -1;
     if (srcFrame->format == AV_PIX_FMT_NONE) return -1;
-    if (this->SwsCtx == NULL ||
-        SrcInfo.Width != srcFrame->width ||
-        SrcInfo.Height != srcFrame->height ||
-        SrcInfo.Format != srcFrame->format
-            )
+
+    if (this->SwsCtx == NULL || SrcInfo.Width != srcFrame->width || SrcInfo.Height != srcFrame->height || SrcInfo.Format != srcFrame->format)
     {
         SrcInfo.Width = srcFrame->width;
         SrcInfo.Height = srcFrame->height;

@@ -1,17 +1,17 @@
 #include "EvHeade.h"
 #include "exterlFunction.h"
 #include "ImageFile.h"
+#include "SEIEncode.h"
 
 //file="../1.mp4"
 int testFFmpeg(const char * file)
 {
-    av_register_all();
-
     AVFormatContext * formatContext = avOpenFile(file);
     if (formatContext == NULL)
     {
         return -1;
     }
+
     int videoIndex = getStreamId(formatContext);
 
     if (videoIndex == -1)
@@ -53,6 +53,7 @@ int testFFmpeg(const char * file)
                     fclose(fp);
                     av_frame_unref(frame);
                 }
+
                 //取出自定义数据
                 uint8_t *selfPacket = NULL;
                 uint32_t count = 0;
@@ -73,15 +74,16 @@ int testFFmpeg(const char * file)
         av_packet_unref(packet);
     }
 
-
     av_frame_free(&frame);
     av_packet_free(&packet);
     av_packet_free(&pkt);
 
     avcodec_close(codecContext);
+
 #ifdef USE_NEW_API
     avcodec_free_context(&codecContext);
 #endif
     avformat_close_input(&formatContext);
+
     return 0;
 }

@@ -111,19 +111,18 @@ inline int resetVideoPacket(AVPacket * packet, AVPacket * pkt)
     return 0;
 }
 
-//#define NEW_API
-
 inline int decodeVideo(AVCodecContext * context, AVPacket * packet, AVFrame * frame)
 {
 #ifdef USE_NEW_API
     int ret = avcodec_send_packet(context, packet);
-    if (ret == 0)ret = avcodec_receive_frame(context, frame);
+    if (ret == 0) ret = avcodec_receive_frame(context, frame);
     int got_picture_ptr = 0;
     if (ret == 0) got_picture_ptr = 1;
 #else
     int got_picture_ptr = 0;
 	int ret = avcodec_decode_video2(context, frame, &got_picture_ptr, packet);
 #endif
+
     if (got_picture_ptr > 0) {
         printf("decode:%lld %d %d\n", packet->pts, frame->width, frame->height);
         return 1;
@@ -190,10 +189,7 @@ inline AVCodecContext * openCodecContext(AVStream * stream)
 inline unsigned int GetPictureSize(AVPixelFormat Format, int Width, int Height)
 {
 #ifdef USE_NEW_API
-    unsigned int dstSize = av_image_get_buffer_size(Format,
-                                                    Width,
-                                                    Height,
-                                                    1);
+    unsigned int dstSize = av_image_get_buffer_size(Format,Width,Height,1);
 #else
     unsigned int dstSize = avpicture_get_size(
 		Format,

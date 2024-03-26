@@ -38,31 +38,23 @@ int testConvert(const char * path,const char * opath)
     uint32_t inSize = EvoVideoConvert::GetSize(info);
     uint8_t * nv12_data = (uint8_t*)malloc(inSize);
     av_image_fill_arrays(
-            SrcFrame->data,
-            SrcFrame->linesize,
-            nv12_data,
-            info.Format,
-            info.Width,
-            info.Height,
-            1
+            SrcFrame->data,SrcFrame->linesize,nv12_data,
+            info.Format,info.Width,info.Height,1
     );
 
     uint32_t outSize = EvoVideoConvert::GetSize(infoOut);
     uint8_t * yuv_data = (uint8_t*)malloc(outSize);
     AVFrame * DesFrame = av_frame_alloc();
+
     av_image_fill_arrays(
-            DesFrame->data,
-            DesFrame->linesize,
-            yuv_data,
-            infoOut.Format,
-            infoOut.Width,
-            infoOut.Height,
-            1
+            DesFrame->data,DesFrame->linesize,yuv_data,
+            infoOut.Format,infoOut.Width,infoOut.Height,1
     );
 
     int index = 0;
     char buffer[255];
     char outBuffer[255];
+
     while (true)
     {
         sprintf(buffer, "%s/%d_frame.txt", path, index);
@@ -83,6 +75,7 @@ int testConvert(const char * path,const char * opath)
         fwrite(yuv_data,outSize,1,ofp);
         fclose(ofp);
     }
+
     av_frame_free(&SrcFrame);
     av_frame_free(&DesFrame);
     free(nv12_data);

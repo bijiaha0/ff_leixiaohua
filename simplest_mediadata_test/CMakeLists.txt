@@ -26,4 +26,6 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/sintel.h264
 aux_source_directory(. srcs)
 add_executable(simplest_mediadata_test ${srcs})
 
+target_link_libraries(simplest_mediadata_test -lavutil)
+
 

@@ -1,19 +1,9 @@
 #include "EvHeade.h"
 #include "Encode.h"
-#include "SEIEncode.h"
-#include "exterlFunction.h"
-#ifdef _WIN32
-#include<direct.h>
-#define mkdir(A,B) _mkdir(A)
-#else
-#include <sys/stat.h>
-#endif
 
 //"../Vid0616000023.mp4"
 int TestInterface(const char * file)
 {
-    avcodec_register_all();
-
     EvoMediaSource source;
     int ret = source.Open(file);
     if (ret != 0)
@@ -115,20 +105,13 @@ int TestInterface(const char * file)
 
             if (outFrame != NULL)
             {
-                //printf("pts:%lld dts:%lld dts:%lld\n", outFrame->pts, outFrame->pkt_pts, outFrame->pkt_dts);
-#ifdef _WIN32
-                char file[64];
-				sprintf(file,"./tmp/%05d.yuv",index++);
-				FILE * fp = fopen(file,"wb+");
-				fwrite(outFrame->data[0], outFrame->width*outFrame->height*3/2,1,fp);
-				fclose(fp);
-				//SaveAsBMP(outFrame, des.Width, des.Height, index++, 24);
-#endif
+                printf("pts:%lld dts:%lld dts:%lld\n", outFrame->pts, outFrame->pkt_pts, outFrame->pkt_dts);
                 FreeAVFrame(&outFrame);
             }
 
             EvoFreeFrame(&out);
         }
+
         //source.Seek(10*1000);
         if (ret == AVERROR_EOF)
         {
