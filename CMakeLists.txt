@@ -3,8 +3,8 @@ project(ff_leixiaohua)
 
 set(CMAKE_CXX_STANDARD 17)
 
-include_directories(/usr/local/Cellar/ffmpeg@4/4.4.4/include/)
-link_directories(/usr/local/Cellar/ffmpeg@4/4.4.4/lib/)
+include_directories(/usr/local/Cellar/ffmpeg/7.0.1-with-options_1/include/)
+link_directories(/usr/local/Cellar/ffmpeg/7.0.1-with-options_1/lib/)
 
 include_directories(/usr/local/Cellar/boost/1.82.0_1/include)
 link_directories(/usr/local/Cellar/boost/1.82.0_1/lib/)
@@ -20,7 +20,7 @@ link_directories(/Users/bijh/Desktop/sourcecode/project/public)
 
 #add_subdirectory(simplest_ffmpeg_player)
 #add_subdirectory(simplest_ffmpeg_player_su)
-#add_subdirectory(simplest_ffmpeg_helloworld)
+add_subdirectory(simplest_ffmpeg_helloworld)
 #add_subdirectory(simplest_video_play_sdl2)
 #add_subdirectory(simplest_ffmpeg_decoder_pure)
 #add_subdirectory(simplest_ffmpeg_decoder)
